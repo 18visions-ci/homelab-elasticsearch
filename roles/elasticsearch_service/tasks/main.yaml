@@ -1,0 +1,6 @@
+---
+- name: Configure Elasticsearch to start automatically
+  systemd:
+    name: elasticsearch
+    enabled: yes
+    state: started

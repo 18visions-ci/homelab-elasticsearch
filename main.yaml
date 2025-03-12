@@ -1,0 +1,15 @@
+---
+- name: Install and configure Elasticsearch on Ubuntu 22.04
+  hosts: elasticsearch
+  become: yes
+  roles:
+    - elasticsearch_install
+    - elasticsearch_configure
+    - elasticsearch_service
+    - elasticsearch_heapsize
+
+  handlers:
+    - name: Restart Elasticsearch
+      systemd:
+        name: elasticsearch
+        state: restarted

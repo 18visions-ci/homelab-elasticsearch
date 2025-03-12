@@ -1,0 +1,13 @@
+---
+- name: Ensure Elasticsearch is listening on all interfaces
+  lineinfile:
+    path: /etc/elasticsearch/elasticsearch.yml
+    regexp: '^#network.host:'
+    line: 'network.host: 0.0.0.0'
+
+- name: Increase max map count
+  sysctl:
+    name: vm.max_map_count
+    value: 262144
+    state: present
+    reload: yes

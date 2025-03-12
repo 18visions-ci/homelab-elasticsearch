@@ -1,0 +1,15 @@
+- name: Configure Elasticsearch heap size
+  lineinfile:
+    path: /etc/elasticsearch/jvm.options
+    regexp: '^#-Xms'
+    line: '-Xms4g'
+  notify:
+    - Restart Elasticsearch
+
+- name: Set maximum heap size to 4 GB
+  lineinfile:
+    path: /etc/elasticsearch/jvm.options
+    regexp: '^#-Xmx'
+    line: '-Xmx4g'
+  notify:
+    - Restart Elasticsearch
