@@ -17,11 +17,18 @@
     regexp: '^#network.publish_host:'
     line: 'network.publish_host: 0.0.0.0'
 
-- name: Disable Elasticsearch security # not recommended for production
+- name: Ensure xpack.security.enabled is set to false (replace any duplicates)
+  lineinfile:
+    path: /etc/elasticsearch/elasticsearch.yml
+    regexp: '^xpack.security.enabled:'
+    line: 'xpack.security.enabled: false'
+    state: present
+
+- name: Remove any duplicate or commented-out xpack.security.enabled lines
   lineinfile:
     path: /etc/elasticsearch/elasticsearch.yml
     regexp: '^#xpack.security.enabled:'
-    line: 'xpack.security.enabled: false'
+    state: absent
 
 - name: Increase max map count
   sysctl:
