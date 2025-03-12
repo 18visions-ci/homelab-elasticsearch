@@ -5,6 +5,24 @@
     regexp: '^#network.host:'
     line: 'network.host: 0.0.0.0'
 
+- name: Ensure bind_host and publish_host are set to 0.0.0.0
+  lineinfile:
+    path: /etc/elasticsearch/elasticsearch.yml
+    regexp: '^#network.bind_host:'
+    line: 'network.bind_host: 0.0.0.0'
+
+- name: Ensure publish_host is set to 0.0.0.0
+  lineinfile:
+    path: /etc/elasticsearch/elasticsearch.yml
+    regexp: '^#network.publish_host:'
+    line: 'network.publish_host: 0.0.0.0'
+
+- name: Disable Elasticsearch security # not recommended for production
+  lineinfile:
+    path: /etc/elasticsearch/elasticsearch.yml
+    regexp: '^#xpack.security.enabled:'
+    line: 'xpack.security.enabled: false'
+
 - name: Increase max map count
   sysctl:
     name: vm.max_map_count
