@@ -2,6 +2,8 @@
 - name: Install and configure Elasticsearch on Ubuntu 22.04
   hosts: elasticsearch
   become: yes
+  become_method: sudo  # Explicitly set sudo
+  become_user: root  # Run as root
   roles:
     - elasticsearch_install
     - elasticsearch_configure
