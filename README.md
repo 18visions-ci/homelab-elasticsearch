@@ -29,11 +29,14 @@ The main playbook `main.yaml` includes all roles:
       systemd:
         name: elasticsearch
         state: restarted
+```
 
 Usage
-Run the playbook with:
 
+Run the playbook with:
+```
 ansible-playbook -i <inventory_file> [main.yaml](http://_vscodecontentref_/1)
+```
 
 License
 MIT License
