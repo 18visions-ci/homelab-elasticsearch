@@ -35,7 +35,7 @@ Usage
 
 Run the playbook with:
 ```
-ansible-playbook -i <inventory_file> [main.yaml](http://_vscodecontentref_/1)
+ansible-playbook -i <inventory_file> main.yaml
 ```
 
 License
