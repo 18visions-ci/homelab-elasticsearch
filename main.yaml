@@ -4,6 +4,12 @@
   become: yes
   become_method: sudo  # Explicitly set sudo
   become_user: root  # Run as root
+  
+  pre_tasks:
+    - name: Set hostname
+      hostname:
+        name: "{{ inventory_hostname }}"
+  
   roles:
     - elasticsearch_install
     - elasticsearch_configure
