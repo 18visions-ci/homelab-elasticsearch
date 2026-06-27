@@ -1,15 +1,32 @@
-- name: Configure Elasticsearch heap size
-  lineinfile:
-    path: /etc/elasticsearch/jvm.options
-    regexp: '^#-Xms'
-    line: '-Xms4g'
-  notify:
-    - Restart Elasticsearch
+---
+# Heap = 50% of host RAM (Elastic's recommendation; the other half feeds the OS
+# filesystem cache that Lucene relies on), capped at 31g to stay under the
+# compressed-oops threshold. Scales per host (e.g. ~4g on the 8g node).
+- name: Compute Elasticsearch heap size (50% of RAM, capped at 31g)
+  ansible.builtin.set_fact:
+    es_heap_mb: "{{ [(ansible_memtotal_mb * 0.5) | int, 31744] | min }}"
 
-- name: Set maximum heap size to 4 GB
-  lineinfile:
+# Manage heap via a jvm.options.d drop-in: it's the supported override location
+# and survives package upgrades (the main jvm.options is owned by the package).
+- name: Set Elasticsearch heap via jvm.options.d drop-in
+  ansible.builtin.copy:
+    dest: /etc/elasticsearch/jvm.options.d/heap.options
+    content: |
+      -Xms{{ es_heap_mb }}m
+      -Xmx{{ es_heap_mb }}m
+    owner: root
+    group: elasticsearch
+    mode: '0660'
+  notify: Restart Elasticsearch
+
+# Remove any -Xms/-Xmx lines a previous version of this role appended to the
+# package-owned jvm.options, so they don't conflict with the drop-in.
+- name: Drop legacy heap lines from the main jvm.options
+  ansible.builtin.lineinfile:
     path: /etc/elasticsearch/jvm.options
-    regexp: '^#-Xmx'
-    line: '-Xmx4g'
-  notify:
-    - Restart Elasticsearch
+    regexp: "{{ item }}"
+    state: absent
+  loop:
+    - '^-Xms[0-9]'
+    - '^-Xmx[0-9]'
+  notify: Restart Elasticsearch
