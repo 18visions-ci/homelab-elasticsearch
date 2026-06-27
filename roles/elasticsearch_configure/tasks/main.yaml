@@ -30,6 +30,23 @@
     regexp: '^#xpack.security.enabled:'
     state: absent
 
+# Installs the APM index templates (traces-apm*/metrics-apm*/logs-apm*) so the
+# standalone apm-server can ingest without Fleet (Fleet needs security enabled).
+- name: Ensure xpack.apm_data.enabled is set to true (APM index templates)
+  lineinfile:
+    path: /etc/elasticsearch/elasticsearch.yml
+    regexp: '^xpack.apm_data.enabled:'
+    line: 'xpack.apm_data.enabled: true'
+    state: present
+  notify: Restart Elasticsearch
+
+- name: Remove any commented-out xpack.apm_data.enabled lines
+  lineinfile:
+    path: /etc/elasticsearch/elasticsearch.yml
+    regexp: '^#xpack.apm_data.enabled:'
+    state: absent
+  notify: Restart Elasticsearch
+
 - name: Increase max map count
   sysctl:
     name: vm.max_map_count

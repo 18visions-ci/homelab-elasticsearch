@@ -15,40 +15,34 @@ naming — elastic/apm-server#13064).
 
 ---
 
-## The change
+## The change — already implemented in the role
 
-Add to `elasticsearch.yml` on **every** ES node:
+The setting is now in `roles/elasticsearch_configure/tasks/main.yaml` (a
+`lineinfile` task that ensures `xpack.apm_data.enabled: true` in
+`/etc/elasticsearch/elasticsearch.yml` and `notify`s the **Restart
+Elasticsearch** handler). So you just **re-run the playbook** — no manual edit.
 
 ```yaml
-xpack.apm_data.enabled: true
+xpack.apm_data.enabled: true   # <- what the task writes into elasticsearch.yml
 ```
-
-### Where to put it in this Ansible repo
-
-The `elasticsearch_configure` role templates `elasticsearch.yml`. Add the setting
-there so it survives playbook re-runs (do **not** just hand-edit the node — it
-will be overwritten on the next run):
-
-- If the role renders `elasticsearch.yml` from a Jinja template, add the line to
-  that template.
-- If the role builds the config from a vars dict (e.g. `elasticsearch_config:` /
-  group_vars), add `xpack.apm_data.enabled: true` to that dict.
-- Manual fallback (one-off): append the line to `/etc/elasticsearch/elasticsearch.yml`.
 
 ---
 
 ## Apply (dev first, then prod)
 
-Do **dev (10.7.40.191)** first; verify; then **prod (10.7.30.238)**.
+Do **dev (10.7.40.191)** first; verify; then **prod (10.7.30.238)**. The task
+changes `elasticsearch.yml` and the handler restarts ES automatically at the end
+of the run.
 
 ```bash
 # Dev
 ansible-playbook main.yaml --limit elasticsearch-dev      # adjust to your inventory group/host
-# (the play's "Restart Elasticsearch" handler restarts the service)
-
-# If applied manually instead of via the handler:
-#   sudo systemctl restart elasticsearch
+# then, after verifying, prod:
+ansible-playbook main.yaml --limit elasticsearch-prod
 ```
+
+If the playbook reports `changed` on the apm_data task but you want to confirm the
+restart fired, check `systemctl status elasticsearch` (uptime should be recent).
 
 Single-node per env → expect a brief ingest gap during restart (Logstash will
 reconnect automatically; it logged "Restored connection to ES" on the last
