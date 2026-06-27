@@ -7,6 +7,7 @@
       - gnupg
     state: present
     update_cache: yes
+    lock_timeout: 120
 
 - name: Add Elastic APT signing key
   ansible.builtin.get_url:
@@ -28,6 +29,7 @@
 - name: Refresh apt cache after repo change
   ansible.builtin.apt:
     update_cache: yes
+    lock_timeout: 120
   when: elastic_repo.changed
 
 # Pinned version => a re-run is a no-op when already installed, and never
@@ -37,4 +39,5 @@
   ansible.builtin.apt:
     name: "elasticsearch={{ elasticsearch_version }}"
     state: present
+    lock_timeout: 120
   notify: Restart Elasticsearch
