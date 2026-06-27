@@ -1,4 +1,12 @@
 ---
+# Recover from a previously interrupted apt/dpkg run (e.g. a killed
+# unattended-upgrade) so the install task below doesn't fail with
+# "dpkg was interrupted". No-op when the dpkg state is already clean.
+- name: Repair any interrupted dpkg state
+  ansible.builtin.command: dpkg --configure -a
+  register: dpkg_configure
+  changed_when: dpkg_configure.stdout | length > 0
+
 - name: Install prerequisite apt packages
   ansible.builtin.apt:
     name:
