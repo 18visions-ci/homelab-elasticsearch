@@ -49,3 +49,10 @@
     state: present
     lock_timeout: 120
   notify: Restart Elasticsearch
+
+# Pin via apt hold too, so unattended-upgrades / ad-hoc `apt upgrade` can never
+# bump ES out from under the stack (this is what just caused the 8.19.17 drift).
+- name: Hold the elasticsearch package
+  ansible.builtin.dpkg_selections:
+    name: elasticsearch
+    selection: hold
