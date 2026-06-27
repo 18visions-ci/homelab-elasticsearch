@@ -1,0 +1,4 @@
+---
+# Pin to the running stack version so playbook re-runs never silently upgrade ES.
+# Confirm the exact apt version string with: apt-cache policy elasticsearch
+elasticsearch_version: "8.18.1"

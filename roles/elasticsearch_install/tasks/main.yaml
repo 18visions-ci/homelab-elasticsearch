@@ -1,15 +1,40 @@
 ---
-- name: Install necessary apt packages
-  apt:
+- name: Install prerequisite apt packages
+  ansible.builtin.apt:
     name:
       - apt-transport-https
-      - openjdk-11-jre
       - curl
+      - gnupg
     state: present
     update_cache: yes
 
-- name: Download and install Elasticsearch
-  shell: |
-    curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo tee /etc/apt/trusted.gpg.d/elastic.asc
-    echo "deb https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-8.x.list
-    sudo apt update && sudo apt install elasticsearch -y
+- name: Add Elastic APT signing key
+  ansible.builtin.get_url:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    dest: /etc/apt/trusted.gpg.d/elastic.asc
+    mode: '0644'
+
+# copy (not `tee -a`) so the repo file is declarative and never accumulates
+# duplicate lines on re-runs.
+- name: Add Elastic 8.x APT repository
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/elastic-8.x.list
+    content: "deb [signed-by=/etc/apt/trusted.gpg.d/elastic.asc] https://artifacts.elastic.co/packages/8.x/apt stable main\n"
+    owner: root
+    group: root
+    mode: '0644'
+  register: elastic_repo
+
+- name: Refresh apt cache after repo change
+  ansible.builtin.apt:
+    update_cache: yes
+  when: elastic_repo.changed
+
+# Pinned version => a re-run is a no-op when already installed, and never
+# silently upgrades ES past the rest of the stack. Bump elasticsearch_version
+# (role defaults) deliberately when you want to upgrade.
+- name: Install Elasticsearch {{ elasticsearch_version }}
+  ansible.builtin.apt:
+    name: "elasticsearch={{ elasticsearch_version }}"
+    state: present
+  notify: Restart Elasticsearch
